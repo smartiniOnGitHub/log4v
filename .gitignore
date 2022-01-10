@@ -1,9 +1,62 @@
-# Binaries for programs and plugins
-main
-log4v
-*.exe
-*.exe~
-*.so
-*.dylib
+# project specific
+# vlang built files (for any v source in current folder), as a quick workaround
+# exclude all (first) and then negate exclude on all with an extension, and all folders
+*
+!*/
+!*.*
+!/BUILD
+!/CHANGELOG
+!/Dockerfile
+!/LICENSE
+!/Makefile
+!/NOTICE
+!/README
+# then add all other (folder and files) exclusions ...
+
+# temporary/work/output folders
+_old/
+# bin/
+build/
+dist/
+# docs/
+logs/
+out/
+private/
+temp/
+tmp/
+
+# mac files
+.DS_Store
+
+# environment variables file
+.env
+.envrc
+
+# IDE/editors
+.vscode
+.cache
+.metadata
+.settings
+
+# common files to not commit
+*~*
+*.bak
+Thumbs.db
+*.db
+*.zip
+*.tar
+*.tar.gz
+*.out
+*.lock
+*.log*
+*.tmp
+*.temp
+
+# executable and binary files files
+*.bin
+*.exe*
 *.dll
-vls.log
+*.dylib
+*.so
+*.o
+# below exclude even all files without an extension ...
