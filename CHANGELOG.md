@@ -6,5 +6,7 @@ Summary Changelog:
 - Doc: add initial documentation
 - Feature: initial implementation; note that some public definitions here 
   are used from V integrated logging (log module), for better reuse/consistency
+- Test: perform white box testing (testing even some internal details, 
+  from the same module)
 
 ----
