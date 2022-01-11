@@ -4,7 +4,7 @@ module log4v
 
 fn test_empty() {
 	println(@FN + ' ' + 'first tests on Log4v, to ensure it only compiles')
-    assert true
+	assert true
 }
 
 fn test_new_defaults() {
@@ -18,4 +18,3 @@ fn test_new_defaults() {
 	// log := log4v.new_log4v()// when using from the repository
 	assert typeof(log).name == '.Log4v'
 }
-
