@@ -15,6 +15,7 @@ pub struct Log4v {
 mut:
 	level Level = .info
 	name  string = 'log4v'
+	processed_log int // TODO: check if keep ...
 	// TODO: add formatters, appenders, etc ...
 }
 
@@ -27,8 +28,8 @@ pub fn 	new_log4v_as_logger() Logger {
 
 // TODO: check if rename to 'new' only ... wip
 // new_log4v create and return a new Log4v instance
-pub fn 	new_log4v() Log4v {
-	return Log4v{}
+pub fn 	new_log4v() &Log4v {
+	return &Log4v{}
 }
 
 // TODO: add other constructor versions ... wip
@@ -45,7 +46,7 @@ pub fn (mut l Log4v) set_level(level Level) {
 
 // flush writes the log file content to disk
 pub fn (l Log4v) flush() {
-	// TODO: check if it makes sense here ...
+	// TODO: check if it makes sense here, and if yes, how to flush the channel ...
 }
 
 // close closes the log file
@@ -69,9 +70,14 @@ fn (l Log4v) send_message(s string) {
 
 // process_logs get log messages from logger channel and send to all log appenders
 // to be called asynchronously
-fn (l Log4v) process_logs() {
-	msg := <- l.ch 
-	println(msg) // temp
+fn (mut l Log4v) process_logs() {
+	msg := <- l.ch
+	$if debug? {
+		l.processed_log++
+		println('$l.processed_log : $msg') // temp
+	} $else {
+		println(msg) // temp
+	}
 	// TODO: send to all log appenders ...
 }
 
@@ -94,7 +100,7 @@ pub fn (l Log4v) error(s string) {
 		return
 	}
 	msg := l.format_message(s, .error)
-	l.send_message(msg)
+	go l.send_message(msg)
 }
 
 // warn logs the given message if `Log.level` is greater than or equal to the `Level.warn` category
@@ -104,7 +110,7 @@ pub fn (l Log4v) warn(s string) {
 		return
 	}
 	msg := l.format_message(s, .warn)
-	l.send_message(msg)
+	go l.send_message(msg)
 }
 
 // info logs the given message if `Log.level` is greater than or equal to the `Level.info` category
@@ -115,7 +121,7 @@ pub fn (l Log4v) info(s string) {
 	}
 	// format the string and send to channel
 	msg := l.format_message(s, .info)
-	l.send_message(msg)
+	go l.send_message(msg)
 }
 
 // debug logs the given message if `Log.level` is greater than or equal to the `Level.debug` category
@@ -125,7 +131,7 @@ pub fn (l Log4v) debug(s string) {
 		return
 	}
 	msg := l.format_message(s, .debug)
-	l.send_message(msg)
+	go l.send_message(msg)
 }
 
 // TODO: check if add even an additional 'trace' method, but enable it only if debug is enabled at compile time ... wip
