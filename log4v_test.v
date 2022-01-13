@@ -1,6 +1,7 @@
 module log4v
 
 // import log4v as log // when using from the repository
+import log { level_from_tag } // for testing some interoperability with it
 import time
 
 fn test_empty() {
@@ -42,19 +43,10 @@ fn test_logger_flow_simple() {
 	println(@FN + ' ' + 'test a minimal flow/usage of a new Log4v instance using all defaults')
 
 	mut l := new_log4v()
-
-	/*
 	// start async management of logs output
-	// TODO: check/fix ... wip
-	lp := go l.process_logs()
-	defer {
-		l.close()
-		lp.wait() // need to wait // TODO: find the right way, or with a timeout here ... wip
-	}
-	 */
-	// exit at the given timeout, to avoid wait forever
-	lp := go l.process_logs()
+	lp := go l.start()
 	println(@FN + ' DEBUG - $lp.str()') // temp
+	// exit at the given timeout, to avoid wait forever
 	// go exit_after_timeout(10)
 	// exit_logger_after_timeout(lp, 10) // temp, logger seems to do nothing, but timeout works ...
 	// go exit_logger_after_timeout(lp, 10)  // temp, logger works (partially) but exit before the timeout ...
@@ -66,7 +58,26 @@ fn test_logger_flow_simple() {
 	l.debug('no output for debug')
 	l.set_level(.debug) // this requires logger instance to be mutable
 	l.debug('debug message now')
-	// TODO: add others like level from tag string, panic, etc ... wip
-
+	l.trace('trace message, available only when specifying compilation flag debug, so: `v -d debug ...`')
 	assert true
+
+	// testing some interoperability with V log module
+	l.set_level(log.level_from_tag('INFO') or { log.Level.disabled }) // set level from string, sample
+	l.info('info message again, decode level from log')
+	l.set_level(log.level_from_tag('') or { log.Level.disabled }) // set level from string, sample
+	l.error('no output anymore, decode level from log')
+	assert true
+
+	// testing same features but from log4v module
+	l.set_level(level_from_string('INFO') or { log.Level.disabled }) // set level from string, sample
+	l.info('info message again, decode level from current module')
+	l.set_level(level_from_string('') or { log.Level.disabled }) // set level from string, sample
+	l.error('no output anymore, decode level from current module')
+	assert true
+
+	// as a sample, add a call even to panic, so keep commented
+	// l.fatal('fatal') // panic, next statements won't be executed
+	// next lines must be commented, to avoid compilatio error (after panic no statements won't be executed)
+	// l.set_level(.info)
+	// l.warn('warn message')
 }

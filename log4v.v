@@ -2,7 +2,7 @@ module log4v
 
 // reuse some standard definitions from V integrated log module
 // note that many methods are similar (as much as possible) to those in V integrated log module
-import log { Level, Logger }
+import log { Level, Logger, level_from_tag }
 
 pub const (
 	version = '0.1'
@@ -10,11 +10,11 @@ pub const (
 
 // Log4v represents a logging object
 pub struct Log4v {
-	ch    chan string // unbuffered (sync)
-	// ch    chan string{cap: buf_len} // buffered (async)
+	ch chan string // unbuffered (sync)
+	// ch chan string{cap: buf_len} // buffered (async)
 mut:
-	level Level = .info
-	name  string = 'log4v'
+	level         Level  = .info
+	name          string = 'log4v'
 	processed_log int // TODO: check if keep ...
 	// TODO: add formatters, appenders, etc ...
 }
@@ -22,17 +22,24 @@ mut:
 // TODO: add Config, etc .. wip
 
 // new_log4v_as_logger create and return a new Log4v instance, as a generic Logger implementation
-pub fn 	new_log4v_as_logger() Logger {
+pub fn new_log4v_as_logger() Logger {
 	return Log4v{}
 }
 
 // TODO: check if rename to 'new' only ... wip
 // new_log4v create and return a new Log4v instance
-pub fn 	new_log4v() &Log4v {
+pub fn new_log4v() &Log4v {
 	return &Log4v{}
 }
 
 // TODO: add other constructor versions ... wip
+
+// level_from_string returns the log level from the given string if matches
+// This function calls 'level_from_tag' in log module, 
+// for better compliance and reuse of code.
+pub fn level_from_string(s string) ?Level {
+	return log.level_from_tag(s)
+}
 
 // get_level gets the internal logging level
 pub fn (mut l Log4v) get_level() Level {
@@ -46,46 +53,50 @@ pub fn (mut l Log4v) set_level(level Level) {
 
 // flush writes the log file content to disk
 pub fn (l Log4v) flush() {
-	// TODO: check if it makes sense here, and if yes, how to flush the channel ...
+	// TODO: check if it makes sense here, and if yes, how to flush the channel (and continue to send messages to it, later) ...
 }
 
 // close closes the log file
 pub fn (l Log4v) close() {
-	defer {
-		l.ch.close()
-	}
+	// close the channel
+	l.ch.close()
+	// close all appenders (where needed)
+	// TODO: ...
 }
 
 // format_message format the given log message `s` and level `level` with the log format set in the logger
 fn (l Log4v) format_message(s string, level Level) string {
 	// TODO: check if use sprintf or similar ...
-	return '$l.name - $l.level - $s'
+	return '$l.name - $level - $s'
 }
 
 // send_message writes log message `s` to the log buffer
 // to be consumed by all log appenders
+// note that the log message must already be formatted
 fn (l Log4v) send_message(s string) {
 	l.ch <- s
 }
 
-// process_logs get log messages from logger channel and send to all log appenders
-// to be called asynchronously
-fn (mut l Log4v) process_logs() {
-	msg := <- l.ch
-	$if debug? {
-		l.processed_log++
-		println('$l.processed_log : $msg') // temp
-	} $else {
-		println(msg) // temp
+// start get (process) log messages from logger channel and send to all log appenders
+// It must be called asynchronously
+fn (mut l Log4v) start() {
+	for { // loop forever // TODO: later check for an exit condition ...
+		msg := <-l.ch
+		$if debug ? {
+			// l.processed_log++
+			// println('$l.processed_log : $msg') // temp
+			println(msg) // temp // TODO: check with V guys for process stuck after first message even in this case ... wip
+		} $else {
+			println(msg) // temp
+		}
+		// TODO: send to all log appenders ...
 	}
-	// TODO: send to all log appenders ...
 }
 
-[noreturn] // TODO: check if remove the panic (and the noreturn) here ... wip
 // fatal logs the given message if `Log.level` is greater than or equal to the `Level.fatal` category
 // Note that this method performs a panic at the end, even if log level is not enabled.
+[noreturn]
 pub fn (l Log4v) fatal(s string) {
-	println(@FN + ' DEBUG') // temp
 	if int(l.level) >= int(Level.fatal) {
 		msg := l.format_message(s, .fatal)
 		l.send_message(msg)
@@ -95,43 +106,50 @@ pub fn (l Log4v) fatal(s string) {
 
 // error logs the given message if `Log.level` is greater than or equal to the `Level.error` category
 pub fn (l Log4v) error(s string) {
-	println(@FN + ' DEBUG') // temp
+	// println('DEBUG: ' + @FN) // temp, only during development/debugging
 	if int(l.level) < int(Level.error) {
 		return
 	}
 	msg := l.format_message(s, .error)
-	go l.send_message(msg)
+	l.send_message(msg)
 }
 
 // warn logs the given message if `Log.level` is greater than or equal to the `Level.warn` category
 pub fn (l Log4v) warn(s string) {
-	println(@FN + ' DEBUG') // temp
 	if int(l.level) < int(Level.warn) {
 		return
 	}
 	msg := l.format_message(s, .warn)
-	go l.send_message(msg)
+	l.send_message(msg)
 }
 
 // info logs the given message if `Log.level` is greater than or equal to the `Level.info` category
 pub fn (l Log4v) info(s string) {
-	println(@FN + ' DEBUG') // temp
 	if int(l.level) < int(Level.info) {
 		return
 	}
 	// format the string and send to channel
 	msg := l.format_message(s, .info)
-	go l.send_message(msg)
+	l.send_message(msg)
 }
 
 // debug logs the given message if `Log.level` is greater than or equal to the `Level.debug` category
 pub fn (l Log4v) debug(s string) {
-	println(@FN + ' DEBUG') // temp
 	if int(l.level) < int(Level.debug) {
 		return
 	}
 	msg := l.format_message(s, .debug)
-	go l.send_message(msg)
+	l.send_message(msg)
 }
 
-// TODO: check if add even an additional 'trace' method, but enable it only if debug is enabled at compile time ... wip
+// trace logs the given message if `Log.level` is greater than or equal to the `Level.debug` category
+// logging level here is the same of debug (a new '.trace' level is not really needed)
+// but note that this function is available only when compiling with the 'debug' flag
+[if debug]
+pub fn (l Log4v) trace(s string) {
+	if int(l.level) < int(Level.debug) {
+		return
+	}
+	msg := l.format_message(s, .debug)
+	l.send_message(msg)
+}
