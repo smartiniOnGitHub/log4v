@@ -39,18 +39,8 @@ fn exit_logger_after_timeout(t thread, timeout_in_sec int) {
 	t.wait()
 }
 
-fn test_logger_flow_simple() {
-	println(@FN + ' ' + 'test a minimal flow/usage of a new Log4v instance using all defaults')
-
-	mut l := new_log4v()
-	// start async management of logs output
-	lp := go l.start()
-	println(@FN + ' DEBUG - $lp.str()') // temp
-	// exit at the given timeout, to avoid wait forever
-	// go exit_after_timeout(10)
-	// exit_logger_after_timeout(lp, 10) // temp, logger seems to do nothing, but timeout works ...
-	// go exit_logger_after_timeout(lp, 10)  // temp, logger works (partially) but exit before the timeout ...
-
+fn logging_statements_example(name string, mut l Log4v) {
+	println('---- $name common logging statements begin ----')
 	// call some log methods, but see output when run this source normally (not as a test)
 	l.info('info message')
 	l.warn('warning message')
@@ -80,4 +70,27 @@ fn test_logger_flow_simple() {
 	// next lines must be commented, to avoid compilatio error (after panic no statements won't be executed)
 	// l.set_level(.info)
 	// l.warn('warn message')
+
+	println('---- $name common logging statements end   ----')
 }
+
+fn test_logger_flow_simple() {
+	println(@FN + ' ' + 'test a minimal flow/usage of a new Log4v instance using all defaults')
+
+	mut l := new_log4v()
+	// start async management of logs output
+	lp := go l.start()
+	println(@FN + ' DEBUG - $lp.str()') // temp
+	// exit at the given timeout, to avoid wait forever
+	// go exit_after_timeout(10)
+	// exit_logger_after_timeout(lp, 10) // temp, logger seems to do nothing, but timeout works ...
+	// go exit_logger_after_timeout(lp, 10)  // temp, logger works (partially) but exit before the timeout ...
+
+	// log statements, moved in its own utility function for better reuse across tests
+	logging_statements_example(@FN, mut l)
+	assert true
+}
+
+// TODO: test logger by providing a custom LogFormatter ...
+
+// TODO: more tests ...

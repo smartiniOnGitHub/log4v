@@ -3,6 +3,7 @@ module log4v
 // reuse some standard definitions from V integrated log module
 // note that many methods are similar (as much as possible) to those in V integrated log module
 import log { Level, Logger, level_from_tag }
+import time
 
 pub const (
 	version = '0.1'
@@ -12,12 +13,16 @@ pub const (
 pub struct Log4v {
 	ch chan string // unbuffered (sync)
 	// ch chan string{cap: buf_len} // buffered (async)
+	formatter LogFormatter = format_message
+	// appender LogAppender[] TODO: ...
 mut:
 	level         Level  = .info
 	name          string = 'log4v'
-	processed_log int // TODO: check if keep ...
-	// TODO: add formatters, appenders, etc ...
+	processed_tot int // TODO: check if keep ...
 }
+
+// LogFormatter defines a generic log formatter function
+pub type LogFormatter = fn (name string, text string, level Level) string
 
 // TODO: add Config, etc .. wip
 
@@ -39,6 +44,27 @@ pub fn new_log4v() &Log4v {
 // for better compliance and reuse of code.
 pub fn level_from_string(s string) ?Level {
 	return log.level_from_tag(s)
+}
+
+// level_to_string returns a label for log level `l` as a string.
+fn level_to_string(l Level) string {
+	return match l {
+		.disabled { '     ' }
+		.fatal { 'FATAL' }
+		.error { 'ERROR' }
+		.warn { 'WARN ' }
+		.info { 'INFO ' }
+		.debug { 'DEBUG' }
+	}
+}
+
+// format_message format the given log name/context `name`, message `s` and level `level` with the log format set in the logger
+// This is default implementation of LogFormatter for Log4v formatter.
+fn format_message(name string, s string, level Level) string {
+	now := time.now().format_ss_milli()
+	mut msg := if name.len > 0 { '$name | ' } else { '' }
+	return msg + '${level_to_string(level)} | $now | $s'
+	// TODO: later add variables in the format, then check if use sprintf or similar ...
 }
 
 // get_level gets the internal logging level
@@ -64,12 +90,6 @@ pub fn (l Log4v) close() {
 	// TODO: ...
 }
 
-// format_message format the given log message `s` and level `level` with the log format set in the logger
-fn (l Log4v) format_message(s string, level Level) string {
-	// TODO: check if use sprintf or similar ...
-	return '$l.name - $level - $s'
-}
-
 // send_message writes log message `s` to the log buffer
 // to be consumed by all log appenders
 // note that the log message must already be formatted
@@ -83,8 +103,8 @@ fn (mut l Log4v) start() {
 	for { // loop forever // TODO: later check for an exit condition ...
 		msg := <-l.ch
 		$if debug ? {
-			// l.processed_log++
-			// println('$l.processed_log : $msg') // temp
+			// l.processed_tot++
+			// println('$l.processed_tot : $msg') // temp
 			println(msg) // temp // TODO: check with V guys for process stuck after first message even in this case ... wip
 		} $else {
 			println(msg) // temp
@@ -98,7 +118,7 @@ fn (mut l Log4v) start() {
 [noreturn]
 pub fn (l Log4v) fatal(s string) {
 	if int(l.level) >= int(Level.fatal) {
-		msg := l.format_message(s, .fatal)
+		msg := l.formatter(l.name, s, Level.fatal)
 		l.send_message(msg)
 	}
 	panic('$l.name: $s')
@@ -110,7 +130,7 @@ pub fn (l Log4v) error(s string) {
 	if int(l.level) < int(Level.error) {
 		return
 	}
-	msg := l.format_message(s, .error)
+	msg := l.formatter(l.name, s, Level.error)
 	l.send_message(msg)
 }
 
@@ -119,7 +139,7 @@ pub fn (l Log4v) warn(s string) {
 	if int(l.level) < int(Level.warn) {
 		return
 	}
-	msg := l.format_message(s, .warn)
+	msg := l.formatter(l.name, s, Level.warn)
 	l.send_message(msg)
 }
 
@@ -129,7 +149,7 @@ pub fn (l Log4v) info(s string) {
 		return
 	}
 	// format the string and send to channel
-	msg := l.format_message(s, .info)
+	msg := l.formatter(l.name, s, Level.info)
 	l.send_message(msg)
 }
 
@@ -138,7 +158,7 @@ pub fn (l Log4v) debug(s string) {
 	if int(l.level) < int(Level.debug) {
 		return
 	}
-	msg := l.format_message(s, .debug)
+	msg := l.formatter(l.name, s, Level.debug)
 	l.send_message(msg)
 }
 
@@ -150,6 +170,6 @@ pub fn (l Log4v) trace(s string) {
 	if int(l.level) < int(Level.debug) {
 		return
 	}
-	msg := l.format_message(s, .debug)
+	msg := l.formatter(l.name, s, Level.debug)
 	l.send_message(msg)
 }
