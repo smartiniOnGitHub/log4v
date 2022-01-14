@@ -7,6 +7,7 @@ import time
 
 pub const (
 	version = '0.1'
+	// default_formatter = format_message
 )
 
 // Log4v represents a logging object
@@ -31,13 +32,21 @@ pub fn new_log4v_as_logger() Logger {
 	return Log4v{}
 }
 
-// TODO: check if rename to 'new' only ... wip
 // new_log4v create and return a new Log4v instance
 pub fn new_log4v() &Log4v {
 	return &Log4v{}
 }
 
-// TODO: add other constructor versions ... wip
+// new_log4v_full create and return a new Log4v instance by specifying some logger settings
+pub fn new_log4v_full(name string, formatter LogFormatter, level Level) &Log4v {
+	return &Log4v{
+		name: name,
+		formatter: formatter,
+		level: level
+	}
+}
+
+// TODO: add LogConfig and maybe another constructor version to set it ... wip
 
 // level_from_string returns the log level from the given string if matches
 // This function calls 'level_from_tag' in log module, 
@@ -49,11 +58,11 @@ pub fn level_from_string(s string) ?Level {
 // level_to_string returns a label for log level `l` as a string.
 fn level_to_string(l Level) string {
 	return match l {
-		.disabled { '     ' }
+		.disabled { '' }
 		.fatal { 'FATAL' }
 		.error { 'ERROR' }
-		.warn { 'WARN ' }
-		.info { 'INFO ' }
+		.warn { 'WARN' }
+		.info { 'INFO' }
 		.debug { 'DEBUG' }
 	}
 }
@@ -63,7 +72,7 @@ fn level_to_string(l Level) string {
 fn format_message(name string, s string, level Level) string {
 	now := time.now().format_ss_milli()
 	mut msg := if name.len > 0 { '$name | ' } else { '' }
-	return msg + '${level_to_string(level)} | $now | $s'
+	return msg + '${level_to_string(level):-5s} | $now | $s'
 	// TODO: later add variables in the format, then check if use sprintf or similar ...
 }
 
@@ -97,9 +106,10 @@ fn (l Log4v) send_message(s string) {
 	l.ch <- s
 }
 
+// TODO: check if call automatically in some factory method (and so to set related thread handle in mutable logger) ... wip
 // start get (process) log messages from logger channel and send to all log appenders
 // It must be called asynchronously
-fn (mut l Log4v) start() {
+pub fn (mut l Log4v) start() {
 	for { // loop forever // TODO: later check for an exit condition ...
 		msg := <-l.ch
 		$if debug ? {

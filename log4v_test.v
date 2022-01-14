@@ -41,6 +41,7 @@ fn exit_logger_after_timeout(t thread, timeout_in_sec int) {
 
 fn logging_statements_example(name string, mut l Log4v) {
 	println('---- $name common logging statements begin ----')
+
 	// call some log methods, but see output when run this source normally (not as a test)
 	l.info('info message')
 	l.warn('warning message')
@@ -77,10 +78,13 @@ fn logging_statements_example(name string, mut l Log4v) {
 fn test_logger_flow_simple() {
 	println(@FN + ' ' + 'test a minimal flow/usage of a new Log4v instance using all defaults')
 
+	// create a new log4v instance
+	// mutable because here (once created) I will change options like log level etc ...
 	mut l := new_log4v()
 	// start async management of logs output
 	lp := go l.start()
-	println(@FN + ' DEBUG - $lp.str()') // temp
+	// l.set_processing_thread_reference(lp) // future work
+	println(@FN + ' DEBUG - $lp.str()')
 	// exit at the given timeout, to avoid wait forever
 	// go exit_after_timeout(10)
 	// exit_logger_after_timeout(lp, 10) // temp, logger seems to do nothing, but timeout works ...
