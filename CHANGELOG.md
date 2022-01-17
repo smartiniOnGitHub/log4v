@@ -13,6 +13,7 @@ Summary Changelog:
   Example: `log4v | INFO  | 2022-01-13 14:52:03.451 | info message`.
   Note that escaping of separator char, newlines, etc are not done at the moment.
   To change that format, provide your own function of type `LogFormatter`.
+- Feature: publish module metadata as public variables, read from 'v.mod'
 - Test: perform white box testing (testing even some internal details, 
   from the same module)
 
