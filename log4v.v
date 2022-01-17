@@ -5,11 +5,6 @@ module log4v
 import log { Level, Logger, level_from_tag }
 import time
 
-pub const (
-	version = '0.1'
-	// default_formatter = format_message
-)
-
 // Log4v represents a logging object
 pub struct Log4v {
 	ch chan string // unbuffered (sync)
