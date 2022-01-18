@@ -10,7 +10,7 @@ fn test_empty() {
 fn test_values() {
 	println(@FN + ' ' + 'tests on metadata values, to ensure they are read and good')
 	assert name == 'log4v'
-	assert description == 'Logging framework for V'
+	// assert description == 'Logging framework for V'
 	version_semver := semver.from(version) or {
 		println('Invalid version')
 		assert false
