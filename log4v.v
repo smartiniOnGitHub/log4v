@@ -5,6 +5,9 @@ module log4v
 import log { Level, Logger, level_from_tag }
 import time
 
+// version library version
+pub const version = '0.1'
+
 // Log4v represents a logging object
 pub struct Log4v {
 	ch chan string // unbuffered (sync)
