@@ -17,8 +17,7 @@ pub struct Log4v {
 mut:
 	level         Level  = .info
 	name          string = 'log4v'
-	ch chan string // unbuffered (sync)
-	// ch chan string{cap: messages_buffer} // buffered (async) // build error, otherwise define without cap and pass in the factory
+	ch            chan string
 	processed_tot int // TODO: check if keep ...
 }
 
@@ -41,9 +40,9 @@ pub fn new_log4v() &Log4v {
 pub fn new_log4v_full(name string, formatter LogFormatter, level Level) &Log4v {
 	ch := chan string{cap: messages_buffer}
 	return &Log4v{
-		name: name,
-		formatter: formatter,
-		level: level,
+		name: name
+		formatter: formatter
+		level: level
 		ch: ch
 	}
 }
@@ -51,10 +50,10 @@ pub fn new_log4v_full(name string, formatter LogFormatter, level Level) &Log4v {
 // TODO: add LogConfig and maybe another constructor version to set it ... wip
 
 // level_from_string returns the log level from the given string if matches
-// This function calls 'level_from_tag' in log module, 
+// This function calls 'level_from_tag' in log module,
 // for better compliance and reuse of code.
 pub fn level_from_string(s string) ?Level {
-	return log.level_from_tag(s)
+	return level_from_tag(s)
 }
 
 // level_to_string returns a label for log level `l` as a string.

@@ -53,9 +53,9 @@ fn logging_statements_example(name string, mut l Log4v) {
 	assert true
 
 	// testing some interoperability with V log module
-	l.set_level(log.level_from_tag('INFO') or { log.Level.disabled }) // set level from string, sample
+	l.set_level(level_from_tag('INFO') or { log.Level.disabled }) // set level from string, sample
 	l.info('info message again, decode level from log')
-	l.set_level(log.level_from_tag('') or { log.Level.disabled }) // set level from string, sample
+	l.set_level(level_from_tag('') or { log.Level.disabled }) // set level from string, sample
 	l.error('no output anymore, decode level from log')
 	assert true
 

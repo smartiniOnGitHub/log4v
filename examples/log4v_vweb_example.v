@@ -9,8 +9,8 @@ import time
 import vweb
 
 const (
-	app_name  = 'log4v_vweb_example'
-	port      = 8000
+	app_name = 'log4v_vweb_example'
+	port     = 8000
 )
 
 struct App {
@@ -18,9 +18,9 @@ struct App {
 	port       int // http port
 	started_at u64 // start timestamp
 mut:
-	state shared State   // app shared state
+	state shared State // app shared state
 	// log   shared log4v.Log4v // logging with log4v // TODO: check if use this instead ... wip
-	log          log4v.Log4v // logging with log4v // TODO: check if good enough ... I have a crash when something is logged with an high Level, check better ... wip
+	log log4v.Log4v // logging with log4v // TODO: check if good enough ... I have a crash when something is logged with an high Level, check better ... wip
 }
 
 struct State {
@@ -80,7 +80,7 @@ fn (mut app App) log_debug(msg string) {
 	rlock app.log {
 		app.log.debug(msg)
 	}
-	 */
+	*/
 	app.log.debug(msg)
 }
 
@@ -92,7 +92,7 @@ fn (mut app App) log_info(msg string) {
 	rlock app.log {
 		app.log.info(msg)
 	}
-	 */
+	*/
 	app.log.info(msg)
 }
 
@@ -103,6 +103,7 @@ fn (mut app App) inc_cnt() int {
 	}
 	return data
 }
+
 // index serve some content on the root (index) route '/'
 pub fn (mut app App) index() vweb.Result {
 	now := time.now().format_ss_milli()
