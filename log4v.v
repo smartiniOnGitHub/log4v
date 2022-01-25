@@ -8,15 +8,17 @@ import time
 // version library version
 pub const version = '0.1'
 
+const messages_buffer = 1000
+
 // Log4v represents a logging object
 pub struct Log4v {
-	ch chan string // unbuffered (sync)
-	// ch chan string{cap: buf_len} // buffered (async)
 	formatter LogFormatter = format_message
 	// appender LogAppender[] TODO: ...
 mut:
 	level         Level  = .info
 	name          string = 'log4v'
+	ch chan string // unbuffered (sync)
+	// ch chan string{cap: messages_buffer} // buffered (async) // build error, otherwise define without cap and pass in the factory
 	processed_tot int // TODO: check if keep ...
 }
 
@@ -37,10 +39,12 @@ pub fn new_log4v() &Log4v {
 
 // new_log4v_full create and return a new Log4v instance by specifying some logger settings
 pub fn new_log4v_full(name string, formatter LogFormatter, level Level) &Log4v {
+	ch := chan string{cap: messages_buffer}
 	return &Log4v{
 		name: name,
 		formatter: formatter,
-		level: level
+		level: level,
+		ch: ch
 	}
 }
 
@@ -111,8 +115,8 @@ pub fn (mut l Log4v) start() {
 	for { // loop forever // TODO: later check for an exit condition ...
 		msg := <-l.ch
 		$if debug ? {
-			// l.processed_tot++
-			// println('$l.processed_tot : $msg') // temp
+			l.processed_tot++
+			println('${l.processed_tot:7} : $msg') // temp
 			println(msg) // temp // TODO: check with V guys for process stuck after first message even in this case ... wip
 		} $else {
 			println(msg) // temp
