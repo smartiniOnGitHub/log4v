@@ -18,7 +18,6 @@ mut:
 	level         Level  = .info
 	name          string = 'log4v'
 	ch            chan string
-	// th            thread ? // to track thread if when executed the start method async // TODO: check later if/how to use, and why only 'thread' here gives another compilation error ... wip
 	processed_tot int // TODO: check if keep ...
 }
 
@@ -57,14 +56,7 @@ pub fn new_log4v_full_start(name string, formatter LogFormatter, level Level) (&
 		level: level
 		ch: ch
 	}
-	// / *
-	// log.th = go log.start() // compilation error: cannot assign to `log.th`: expected `thread ?`, not `thread`
-	// TODO: temp ...
 	t := go log.start()
-	// println('DEBUG: ' + @FN + ' thread: $t.str()') // t is thread(void)
-	// log.th = t // same compilation error ...
-	// * /
-	// go log.start() // alternative, but do not return thread reference ...
 	return log, t
 }
 
@@ -92,7 +84,7 @@ fn level_to_string(l Level) string {
 
 // format_message_default format the given log name/context `name`, message `s` and level `level` with the log format set in the logger
 // This is default implementation of LogFormatter for Log4v formatter.
-[inline] // inlined for better performances // TODO: check if useful ...
+[inline] // inlined for better performances
 pub fn format_message_default(name string, s string, level Level) string {
 	now := time.now().format_ss_milli()
 	mut msg := if name.len > 0 { '$name | ' } else { '' }
@@ -130,7 +122,6 @@ fn (l Log4v) send_message(s string) {
 	l.ch <- s
 }
 
-// TODO: check if call automatically in some factory method (and so to set related thread handle in mutable logger) ... wip
 // start get (process) log messages from logger channel and send to all log appenders
 // It must be called asynchronously
 pub fn (mut l Log4v) start() {
