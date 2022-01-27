@@ -12,12 +12,13 @@ const messages_buffer = 1000
 
 // Log4v represents a logging object
 pub struct Log4v {
-	formatter LogFormatter = format_message
+	formatter LogFormatter = format_message_default
 	// appender LogAppender[] TODO: ...
 mut:
 	level         Level  = .info
 	name          string = 'log4v'
 	ch            chan string
+	// th            thread ? // to track thread if when executed the start method async // TODO: check later if/how to use, and why only 'thread' here gives another compilation error ... wip
 	processed_tot int // TODO: check if keep ...
 }
 
@@ -47,6 +48,26 @@ pub fn new_log4v_full(name string, formatter LogFormatter, level Level) &Log4v {
 	}
 }
 
+// new_log4v_full_start create, start and return a new Log4v instance by specifying some logger settings
+pub fn new_log4v_full_start(name string, formatter LogFormatter, level Level) (&Log4v, thread) {
+	ch := chan string{cap: messages_buffer}
+	mut log := &Log4v{
+		name: name
+		formatter: formatter
+		level: level
+		ch: ch
+	}
+	// / *
+	// log.th = go log.start() // compilation error: cannot assign to `log.th`: expected `thread ?`, not `thread`
+	// TODO: temp ...
+	t := go log.start()
+	// println('DEBUG: ' + @FN + ' thread: $t.str()') // t is thread(void)
+	// log.th = t // same compilation error ...
+	// * /
+	// go log.start() // alternative, but do not return thread reference ...
+	return log, t
+}
+
 // TODO: add LogConfig and maybe another constructor version to set it ... wip
 
 // level_from_string returns the log level from the given string if matches
@@ -57,20 +78,22 @@ pub fn level_from_string(s string) ?Level {
 }
 
 // level_to_string returns a label for log level `l` as a string.
+[inline] // reordered in inverse order and inlined for better performances
 fn level_to_string(l Level) string {
 	return match l {
 		.disabled { '' }
-		.fatal { 'FATAL' }
-		.error { 'ERROR' }
-		.warn { 'WARN' }
-		.info { 'INFO' }
 		.debug { 'DEBUG' }
+		.info { 'INFO' }
+		.warn { 'WARN' }
+		.error { 'ERROR' }
+		.fatal { 'FATAL' }
 	}
 }
 
-// format_message format the given log name/context `name`, message `s` and level `level` with the log format set in the logger
+// format_message_default format the given log name/context `name`, message `s` and level `level` with the log format set in the logger
 // This is default implementation of LogFormatter for Log4v formatter.
-fn format_message(name string, s string, level Level) string {
+[inline] // inlined for better performances // TODO: check if useful ...
+pub fn format_message_default(name string, s string, level Level) string {
 	now := time.now().format_ss_milli()
 	mut msg := if name.len > 0 { '$name | ' } else { '' }
 	return msg + '${level_to_string(level):-5s} | $now | $s'

@@ -84,13 +84,44 @@ fn test_logger_flow_simple() {
 	// start async management of logs output
 	lp := go l.start()
 	// l.set_processing_thread_reference(lp) // future work
-	println(@FN + ' DEBUG - $lp.str()')
+	println(@FN + ' DEBUG - $lp.str()') // log processing thread is a thread(void)
 	// exit at the given timeout, to avoid wait forever
 	// go exit_after_timeout(10)
 	// exit_logger_after_timeout(lp, 10) // temp, logger seems to do nothing, but timeout works ...
 	// go exit_logger_after_timeout(lp, 10)  // temp, logger works (partially) but exit before the timeout ...
 
 	// log statements, moved in its own utility function for better reuse across tests
+	logging_statements_example(@FN, mut l)
+	assert true
+}
+
+
+fn test_logger_flow_full() {
+	println(@FN + ' ' + 'test a minimal flow/usage of a new Log4v instance')
+
+	// create a new log4v instance
+	// mutable because here (once created) I will change options like log level etc ...
+	// note the debug level set here (more output expected respect to previous test case)
+	mut l := new_log4v_full('log4v full options', format_message_default, .debug)
+	// start async management of logs output
+	lp := go l.start()
+	// l.set_processing_thread_reference(lp) // future work
+	println(@FN + ' DEBUG - $lp.str()') // log processing thread is a thread(void)
+
+	logging_statements_example(@FN, mut l)
+	assert true
+}
+
+fn test_logger_flow_full_and_start() {
+	println(@FN + ' ' + 'test a minimal flow/usage of a new Log4v instance, with async log processing automatically started')
+
+	// create a new log4v instance, with async log processing automatically started
+	// mutable because here (once created) I will change options like log level etc ...
+	// note the debug level set here (more output expected respect to previous test case)
+	mut l, lp := new_log4v_full_start('log4v full options', format_message_default, .debug)
+	// l.set_processing_thread_reference(lp) // future work
+	println(@FN + ' DEBUG - $lp.str()') // log processing thread is a thread(void)
+
 	logging_statements_example(@FN, mut l)
 	assert true
 }
