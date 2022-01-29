@@ -1,12 +1,13 @@
 module main
 
-import log { Level, Log, Logger, level_from_tag }
+import log { Log, Logger }
 import time
-import log4v { Log4v, level_from_string }
+import log4v { Log4v }
 import runtime
 
 const cpu_tot = runtime.nr_jobs()
-const repeat  = 1000
+
+const repeat = 1000
 
 // TODO: add a constant with some long text (but single line) ... wip
 
@@ -71,17 +72,21 @@ fn run_v_log_benchmark() time.Duration {
 	// mut logger := log.Log{}
 	// logger.set_level(.info) // set here level and not in constructor only to have it mutable here, but it's not really needed ...
 	// update: to have Log as generic Logger is must be not mutable (per current definition), but to use directly as Log it must be mutable
-	mut logger := &log.Log{ level: .info } // reference needed for its parallel usage
+	mut logger := &Log{
+		level: .info
+	} // reference needed for its parallel usage
 
 	// test in multi-thread, one per available cpu
 	for i in 0 .. cpu_tot + 1 {
 		// logging_statements_example_for_logger('v log as logger on cpu#$i', logger, repeat)
+		// threads << go logging_statements_example_for_logger('v log as logger on cpu#$i', logger, repeat)
 		// TODO: check with V guys if update Logger definitions to be for mutable instances, or if update logger methods to not require mutable instance ... wip
-		// logging_statements_example_for_v_log('v log on cpu#$i', mut logger, repeat) // in the meantime use this
-		threads << go logging_statements_example_for_v_log('v log on cpu#$i', mut logger, repeat) // in the meantime use this
 
-		// TODO: compilation error (C error on generated sources) on the following line, check with V guys ... wip
-		// threads << go logging_statements_example_for_logger('v log on cpu#$i', logger)
+		// in the meantime use this
+		// logging_statements_example_for_v_log('v log on cpu#$i', mut logger, repeat)
+		threads << go logging_statements_example_for_v_log('v log on cpu#$i', mut logger,
+			repeat)
+		// later comment this block
 	}
 	threads.wait()
 	// println(@FN + ' DEBUG - All jobs finished!')
@@ -107,7 +112,7 @@ fn run_log4v_as_logger_benchmark() time.Duration {
 	// test in multi-thread, one per available cpu
 	for i in 0 .. cpu_tot + 1 {
 		logging_statements_example_for_logger('log4v as logger on cpu#$i', logger, repeat)
-		// TODO: compilation error (C error on generated sources) on the following line, check with V guys ... wip
+		// TODO: compilation error (C error on generated sources) on the following line (`error: cannot convert 'struct log__Logger *' to 'struct log__Logger'`), check with V guys ... wip
 		// threads << go logging_statements_example_for_logger('log4v as logger on cpu#$i', logger, repeat)
 	}
 	threads.wait()
@@ -129,14 +134,15 @@ fn run_log4v_as_logger_benchmark() time.Duration {
 
 fn main() {
 	// log benchmark in a multi-threaded console app
-	v_log_elapsed:= run_v_log_benchmark() // define a baseline
-	log4v_elapsed:= run_log4v_as_logger_benchmark() // verify to be similar, or at least not too slow
+	v_log_elapsed := run_v_log_benchmark() // define a baseline
+	log4v_elapsed := run_log4v_as_logger_benchmark() // verify to be similar, or at least not too slow
 
 	// TODO: add other log4v benchmarks (not as logger, etc) ... wip
 
 	println(@FN + ' Benchmark - results')
 	println(@FN + ' Benchmark - num cpu: ${cpu_tot + 1}') // because it starts from 0 for first cpu
-	println(@FN + ' Benchmark - each test is repeated $repeat times, and spread across all available cpu')
+	println(@FN +
+		' Benchmark - each test is repeated $repeat times, and spread across all available cpu')
 	println(@FN + ' elapsed time for v log: ${v_log_elapsed.milliseconds()}ms')
 	println(@FN + ' elapsed time for log4v: ${log4v_elapsed.milliseconds()}ms')
 
