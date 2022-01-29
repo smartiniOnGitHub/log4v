@@ -26,17 +26,14 @@ pub type LogFormatter = fn (name string, text string, level Level) string
 
 // TODO: add Config, etc .. wip
 
-// new_log4v_as_logger create and return a new Log4v instance, as a generic Logger implementation
-pub fn new_log4v_as_logger() Logger {
-	return Log4v{}
-}
-
 // new_log4v create and return a new Log4v instance
+// start must be called manually to let the instance process log messages
 pub fn new_log4v() &Log4v {
 	return &Log4v{}
 }
 
 // new_log4v_full create and return a new Log4v instance by specifying some logger settings
+// start must be called manually to let the instance process log messages
 pub fn new_log4v_full(name string, formatter LogFormatter, level Level) &Log4v {
 	ch := chan string{cap: messages_buffer}
 	return &Log4v{
@@ -49,13 +46,21 @@ pub fn new_log4v_full(name string, formatter LogFormatter, level Level) &Log4v {
 
 // new_log4v_full_start create, start and return a new Log4v instance by specifying some logger settings
 pub fn new_log4v_full_start(name string, formatter LogFormatter, level Level) (&Log4v, thread) {
-	ch := chan string{cap: messages_buffer}
-	mut log := &Log4v{
-		name: name
-		formatter: formatter
-		level: level
-		ch: ch
-	}
+	mut log := new_log4v_full(name, formatter, level)
+	t := go log.start()
+	return log, t
+}
+
+// new_log4v_as_logger create, start and return a new Log4v instance, as a generic Logger implementation
+pub fn new_log4v_as_logger() (&Logger, thread) {
+	mut log := &Log4v{ name: 'logger' }
+	t := go log.start()
+	return log, t
+}
+
+// new_log4v_as_logger_full_start create, start and return a new Log4v instance, as a generic Logger implementation
+pub fn new_log4v_as_logger_full_start(name string, formatter LogFormatter, level Level) (&Logger, thread) {
+	mut log := new_log4v_full(name, formatter, level)
 	t := go log.start()
 	return log, t
 }
