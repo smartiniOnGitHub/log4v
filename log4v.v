@@ -13,7 +13,6 @@ pub const messages_buffer_default = 1000
 // Log4v represents a logging object
 pub struct Log4v {
 	formatter   LogFormatter = format_message_default
-	msg_buf_len int          = messages_buffer_default // TODO: check if really useful ... wip
 	// appender LogAppender[] TODO: ...
 mut:
 	level         Level  = .info
@@ -40,7 +39,6 @@ pub fn new_log4v_full(name string, level Level, formatter LogFormatter, messages
 	return &Log4v{
 		name: name
 		formatter: formatter
-		msg_buf_len: messages_buffer_len
 		level: level
 		ch: ch
 	}
