@@ -8,11 +8,12 @@ import time
 // version library version
 pub const version = '0.1'
 
-const messages_buffer = 1000
+pub const messages_buffer_default = 1000
 
 // Log4v represents a logging object
 pub struct Log4v {
-	formatter LogFormatter = format_message_default
+	formatter   LogFormatter = format_message_default
+	msg_buf_len int          = messages_buffer_default // TODO: check if really useful ... wip
 	// appender LogAppender[] TODO: ...
 mut:
 	level         Level  = .info
@@ -34,19 +35,20 @@ pub fn new_log4v() &Log4v {
 
 // new_log4v_full create and return a new Log4v instance by specifying some logger settings
 // start must be called manually to let the instance process log messages
-pub fn new_log4v_full(name string, formatter LogFormatter, level Level) &Log4v {
-	ch := chan string{cap: messages_buffer}
+pub fn new_log4v_full(name string, level Level, formatter LogFormatter, messages_buffer_len int) &Log4v {
+	ch := chan string{cap: messages_buffer_len}
 	return &Log4v{
 		name: name
 		formatter: formatter
+		msg_buf_len: messages_buffer_len
 		level: level
 		ch: ch
 	}
 }
 
 // new_log4v_full_start create, start and return a new Log4v instance by specifying some logger settings
-pub fn new_log4v_full_start(name string, formatter LogFormatter, level Level) (&Log4v, thread) {
-	mut log := new_log4v_full(name, formatter, level)
+pub fn new_log4v_full_start(name string, level Level, formatter LogFormatter, messages_buffer_len int) (&Log4v, thread) {
+	mut log := new_log4v_full(name, level, formatter, messages_buffer_len)
 	t := go log.start()
 	return log, t
 }
@@ -59,8 +61,8 @@ pub fn new_log4v_as_logger() (&Logger, thread) {
 }
 
 // new_log4v_as_logger_full_start create, start and return a new Log4v instance, as a generic Logger implementation
-pub fn new_log4v_as_logger_full_start(name string, formatter LogFormatter, level Level) (&Logger, thread) {
-	mut log := new_log4v_full(name, formatter, level)
+pub fn new_log4v_as_logger_full_start(name string, level Level, formatter LogFormatter, messages_buffer_len int) (&Logger, thread) {
+	mut log := new_log4v_full(name, level, formatter, messages_buffer_len)
 	t := go log.start()
 	return log, t
 }

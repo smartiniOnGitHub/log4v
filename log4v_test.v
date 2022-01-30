@@ -16,8 +16,9 @@ fn test_new_defaults() {
 	assert typeof(log_struct).name == '.Log4v'
 
 	// create using factory and no arguments, but it returns a generig Logger
-	log_as_logger := new_log4v_as_logger()
-	assert typeof(log_as_logger).name == 'log.Logger'
+	log_as_logger, log_processing_thread := new_log4v_as_logger()
+	assert typeof(log_as_logger).name == '&log.Logger'
+	assert typeof(log_processing_thread).name == 'thread' // or thread(void)
 
 	// create using factory and no arguments
 	log := new_log4v() // when using from the same (current) repository
@@ -102,7 +103,7 @@ fn test_logger_flow_full() {
 	// create a new log4v instance
 	// mutable because here (once created) I will change options like log level etc ...
 	// note the debug level set here (more output expected respect to previous test case)
-	mut l := new_log4v_full('log4v full options', format_message_default, .debug)
+	mut l := new_log4v_full('log4v full options', .debug, format_message_default, messages_buffer_default)
 	// start async management of logs output
 	lp := go l.start()
 	// l.set_processing_thread_reference(lp) // future work
@@ -118,7 +119,7 @@ fn test_logger_flow_full_and_start() {
 	// create a new log4v instance, with async log processing automatically started
 	// mutable because here (once created) I will change options like log level etc ...
 	// note the debug level set here (more output expected respect to previous test case)
-	mut l, lp := new_log4v_full_start('log4v full options', format_message_default, .debug)
+	mut l, lp := new_log4v_full_start('log4v full options', .debug, format_message_default, messages_buffer_default)
 	// l.set_processing_thread_reference(lp) // future work
 	println(@FN + ' DEBUG - $lp.str()') // log processing thread is a thread(void)
 

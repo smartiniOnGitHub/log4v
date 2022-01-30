@@ -135,8 +135,7 @@ fn run_log4v_benchmark() time.Duration {
 	mut sw := time.new_stopwatch()
 
 	// create and return a new Log4v instance
-	mut log4v, log4v_thread := log4v.new_log4v_full_start('log4v full options', log4v.format_message_default,
-		.info)
+	mut log4v, log4v_thread := log4v.new_log4v_full_start('log4v full options', .info, log4v.format_message_default, log4v.messages_buffer_default)
 	println(@FN + ' DEBUG - $log4v_thread.str()') // log processing thread is a thread(void)
 
 	// test in multi-thread, one per available cpu
