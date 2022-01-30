@@ -7,9 +7,9 @@ import runtime
 
 const cpu_tot = runtime.nr_jobs()
 
-const repeat = 1000
+const repeat = 1_000 // 1
 
-// TODO: add a constant with some long text (but single line) ... wip
+const delay_in_sec = 1
 
 fn logging_statements_example_for_v_log(name string, mut l Log, repeat int) {
 	println('---- $name logging statements for v log (repeated $repeat times): begin ----')
@@ -17,12 +17,12 @@ fn logging_statements_example_for_v_log(name string, mut l Log, repeat int) {
 	// repeat more times
 	for i in 0 .. repeat {
 		// call some log methods
-		l.info('info message $i')
-		l.warn('warning message $i')
-		l.error('error message $i')
-		l.debug('no output for debug $i') // not output for this here
+		l.info('$name: info message $i')
+		l.warn('$name: warning message $i')
+		l.error('$name: error message $i')
+		l.debug('$name: no output for debug $i') // not output for this here
 		// l.set_level(.debug) // this requires logger instance to be mutable
-		l.debug('debug message now $i') // not output for this here because current level does not enable it
+		l.debug('$name: debug message now $i') // not output for this here because current level does not enable it
 	}
 
 	println('---- $name logging statements for v log (repeated $repeat times): end   ----')
@@ -34,13 +34,13 @@ fn logging_statements_example_for_logger(name string, l Logger, repeat int) {
 	// repeat more times
 	for i in 0 .. repeat {
 		// call some log methods
-		l.info('info message $i')
-		l.warn('warning message $i')
-		l.error('error message $i')
-		l.debug('no output for debug $i') // not output for this here
+		l.info('$name: info message $i')
+		l.warn('$name: warning message $i')
+		l.error('$name: error message $i')
+		l.debug('$name: no output for debug $i') // not output for this here
 		// l.set_level(.debug) // this requires logger instance to be mutable // disabled because not available in Logger
-		l.debug('debug message now $i') // not output for this here because current level does not enable it
-		// l.trace('trace message, available only when specifying compilation flag debug, so: `v -d debug ...`') // disabled because not available in Logger
+		l.debug('$name: debug message now $i') // not output for this here because current level does not enable it
+		// l.trace('$name: trace message $i, available only when specifying compilation flag debug, so: `v -d debug ...`') // disabled because not available in Logger
 	}
 
 	println('---- $name logging statements for logger (repeated $repeat times): end   ----')
@@ -52,13 +52,13 @@ fn logging_statements_example_for_log4v(name string, mut l Log4v, repeat int) {
 	// repeat more times
 	for i in 0 .. repeat {
 		// call some log methods
-		l.info('info message $i')
-		l.warn('warning message $i')
-		l.error('error message $i')
-		l.debug('no output for debug $i') // not output for this here
+		l.info('$name: info message $i')
+		l.warn('$name: warning message $i')
+		l.error('$name: error message $i')
+		l.debug('$name: no output for debug $i') // not output for this here
 		l.set_level(.debug) // this requires logger instance to be mutable
-		l.debug('debug message now $i')
-		l.trace('trace message, available only when specifying compilation flag debug, so: `v -d debug ...`')
+		l.debug('$name: debug message now $i')
+		l.trace('$name: trace message $i, available only when specifying compilation flag debug, so: `v -d debug ...`')
 	}
 
 	println('---- $name logging statements for log4v (repeated $repeat times): end   ----')
@@ -130,20 +130,54 @@ fn run_log4v_as_logger_benchmark() time.Duration {
 	return elapsed
 }
 
+fn run_log4v_benchmark() time.Duration {
+	mut threads := []thread{}
+	mut sw := time.new_stopwatch()
+
+	// create and return a new Log4v instance
+	mut log4v, log4v_thread := log4v.new_log4v_full_start('log4v full options', log4v.format_message_default,
+		.info)
+	println(@FN + ' DEBUG - $log4v_thread.str()') // log processing thread is a thread(void)
+
+	// test in multi-thread, one per available cpu
+	for i in 0 .. cpu_tot + 1 {
+		// logging_statements_example_for_log4v('log4v on cpu#$i', mut log4v, repeat)
+		threads << go logging_statements_example_for_log4v('log4v on cpu#$i', mut log4v,
+			repeat)
+	}
+	threads.wait()
+	// println(@FN + ' DEBUG - All jobs finished!')
+	// benchmark summary
+	elapsed := sw.elapsed()
+	println('Time took: ${elapsed.nanoseconds()}ns, or ${elapsed.milliseconds()}ms, or ${elapsed.seconds():1.3f}sec')
+	println('----')
+
+	// TODO: to close current benchmark test, check how to let the logger stop its thread (as argument to its method close) ... wip
+
+	// sw.restart()
+	// do other tests ...
+
+	return elapsed
+}
+
 // TODO: add a benchmark even to both loggers when level is set to disabled ... wip
 
 fn main() {
 	// log benchmark in a multi-threaded console app
 	v_log_elapsed := run_v_log_benchmark() // define a baseline
-	log4v_elapsed := run_log4v_as_logger_benchmark() // verify to be similar, or at least not too slow
+	// verify log4v performances to be similar, or at least not too slow
+	log4v_as_logger_elapsed := run_log4v_as_logger_benchmark()
+	log4v_elapsed := run_log4v_benchmark()
 
-	// TODO: add other log4v benchmarks (not as logger, etc) ... wip
+	time.sleep(delay_in_sec * time.second)
+	println(@FN + 'Add a little delay, to let ouput completes...')
 
 	println(@FN + ' Benchmark - results')
 	println(@FN + ' Benchmark - num cpu: ${cpu_tot + 1}') // because it starts from 0 for first cpu
 	println(@FN +
-		' Benchmark - each test is repeated $repeat times, and spread across all available cpu')
+		' Benchmark - each test is repeated $repeat times, and executed on all available cpu')
 	println(@FN + ' elapsed time for v log: ${v_log_elapsed.milliseconds()}ms')
+	println(@FN + ' elapsed time for log4v as logger: ${log4v_as_logger_elapsed.milliseconds()}ms')
 	println(@FN + ' elapsed time for log4v: ${log4v_elapsed.milliseconds()}ms')
 
 	println(@FN + ' Benchmark - end')
