@@ -194,6 +194,7 @@ fn main() {
 	}
 
 	// log benchmark in a multi-threaded console app
+	println(@FN + ' Benchmark - start')
 	v_log_elapsed := run_v_log_benchmark(repeat, num_threads) // define a baseline
 	// verify log4v performances to be similar, or at least not too slow
 	log4v_as_logger_elapsed := run_log4v_as_logger_benchmark(repeat, num_threads)
@@ -207,8 +208,8 @@ fn main() {
 	println(@FN +
 		' Benchmark - each test is repeated $repeat times, and executed on $num_threads parallel threads')
 	println(@FN + ' elapsed time for v log: ${v_log_elapsed.milliseconds()}ms, relative performance: 100% (use as baseline)')
-	println(@FN + ' elapsed time for log4v as logger: ${log4v_as_logger_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_as_logger_elapsed.milliseconds(), v_log_elapsed.milliseconds()):-4.2}%')
-	println(@FN + ' elapsed time for log4v: ${log4v_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_elapsed.milliseconds(), v_log_elapsed.milliseconds()):-4.2}%')
+	println(@FN + ' elapsed time for log4v as logger: ${log4v_as_logger_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_as_logger_elapsed.milliseconds(), v_log_elapsed.milliseconds()):3.2}%')
+	println(@FN + ' elapsed time for log4v: ${log4v_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_elapsed.milliseconds(), v_log_elapsed.milliseconds()):3.2}%')
 
 	println(@FN + ' Benchmark - end')
 }
