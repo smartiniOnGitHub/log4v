@@ -10,10 +10,12 @@ Summary Changelog:
 - Feature: set a log format, fixed for now (all in the same row/line): 
   [logger name or context/application name, optional | ] 
   log level | current timestamp in ISO format | message
-  Example: `log4v | INFO  | 2022-01-13 14:52:03.451 | info message`.
+  Example: `log4v | 2022-01-13 14:52:03.451 | INFO  | info message`.
   Note that escaping of separator char, newlines, etc are not done at the moment.
   To change that format, provide your own function of type `LogFormatter`.
-- Feature: publish module metadata as public variables, read from 'v.mod'
+- Feature: add some examples to show usage in multi-thread console application 
+  and in a vweb application; show interoperability with v log module 
+  and performances, using v log module as reference/baseline
 - Test: perform white box testing (testing even some internal details, 
   from the same module)
 

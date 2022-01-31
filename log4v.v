@@ -16,7 +16,7 @@ pub struct Log4v {
 	// appender LogAppender[] TODO: ...
 mut:
 	level         Level  = .info
-	name          string = 'log4v'
+	name          string
 	ch            chan string
 	processed_tot int // TODO: check if keep ...
 }
@@ -24,7 +24,7 @@ mut:
 // LogFormatter defines a generic log formatter function
 pub type LogFormatter = fn (name string, text string, level Level) string
 
-// TODO: add Config, etc .. wip
+// TODO: add pub LogConfig and update factory functions ... wip
 
 // new_log4v create and return a new Log4v instance
 // start must be called manually to let the instance process log messages
@@ -93,8 +93,8 @@ fn level_to_string(l Level) string {
 pub fn format_message_default(name string, s string, level Level) string {
 	now := time.now().format_ss_milli()
 	mut msg := if name.len > 0 { '$name | ' } else { '' }
-	return msg + '${level_to_string(level):-5s} | $now | $s'
-	// TODO: later add variables in the format, then check if use sprintf or similar ...
+	return msg + '$now | ${level_to_string(level):-5s} | $s'
+	// TODO: later add variables in the format via LogConfig, then check if use sprintf or similar ...
 }
 
 // get_level gets the internal logging level
