@@ -161,7 +161,22 @@ fn run_log4v_benchmark() time.Duration {
 
 // TODO: add a benchmark even to both loggers when level is set to disabled ... wip
 
+// relative_performance_percentage utility function to calculate relative performance percentage of given value and reference (baseline)
+fn relative_performance_percentage(value i64, reference i64) f32 {
+	mut res := f32(0.0)
+	// dump(value)
+	// dump(reference)
+	if reference == 0 { res = 100 }
+	else {
+		res = f32(value) / f32(reference) * f32(100.0)
+	}
+
+	return res
+}
+
 fn main() {
+	// TODO: get repeat (min 1) and num cpu (min 1, no max but raise a warning if higher thjan cpu found) from CLI ... wip
+
 	// log benchmark in a multi-threaded console app
 	v_log_elapsed := run_v_log_benchmark() // define a baseline
 	// verify log4v performances to be similar, or at least not too slow
@@ -175,9 +190,9 @@ fn main() {
 	println(@FN + ' Benchmark - num cpu: ${cpu_tot + 1}') // because it starts from 0 for first cpu
 	println(@FN +
 		' Benchmark - each test is repeated $repeat times, and executed on all available cpu')
-	println(@FN + ' elapsed time for v log: ${v_log_elapsed.milliseconds()}ms')
-	println(@FN + ' elapsed time for log4v as logger: ${log4v_as_logger_elapsed.milliseconds()}ms')
-	println(@FN + ' elapsed time for log4v: ${log4v_elapsed.milliseconds()}ms')
+	println(@FN + ' elapsed time for v log: ${v_log_elapsed.milliseconds()}ms, relative performance: 100% (use as baseline)')
+	println(@FN + ' elapsed time for log4v as logger: ${log4v_as_logger_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_as_logger_elapsed.milliseconds(), v_log_elapsed.milliseconds()):-4.2}%')
+	println(@FN + ' elapsed time for log4v: ${log4v_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_elapsed.milliseconds(), v_log_elapsed.milliseconds()):-4.2}%')
 
 	println(@FN + ' Benchmark - end')
 }
