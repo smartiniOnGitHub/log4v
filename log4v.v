@@ -18,7 +18,7 @@ mut:
 	level         Level  = .info
 	name          string
 	ch            chan string
-	processed_tot int // TODO: check if keep ...
+	processed_tot u64 // TODO: check if keep ...
 }
 
 // LogFormatter defines a generic log formatter function
@@ -94,7 +94,6 @@ pub fn format_message_default(name string, s string, level Level) string {
 	now := time.now().format_ss_milli()
 	mut msg := if name.len > 0 { '$name | ' } else { '' }
 	return msg + '$now | ${level_to_string(level):-5s} | $s'
-	// TODO: later add variables in the format via LogConfig, then check if use sprintf or similar ...
 }
 
 // get_level gets the internal logging level
@@ -132,7 +131,9 @@ fn (l Log4v) send_message(s string) {
 pub fn (mut l Log4v) start() {
 	for { // loop forever // TODO: later check for an exit condition ...
 		msg := <-l.ch
-		$if debug ? {
+		// $if debug_log4v ? { // syntax for custom compile time symbol definition, with build options '-d symbol_name'
+		$if debug { // standard compile time symbol, with build options '-cg'
+// TODO: then update docs in TODO.md ... wip
 			l.processed_tot++
 			println('${l.processed_tot:7} : $msg') // temp
 			println(msg) // temp // TODO: check with V guys for process stuck after first message even in this case ... wip
