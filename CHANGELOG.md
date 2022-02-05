@@ -4,6 +4,7 @@
 Summary Changelog:
 - Doc: First release, with minimal set of features
 - Doc: add initial documentation
+- Doc: generated html documentation with v doc, to publish online later
 - Feature: initial implementation (using buffered channel) to log only to system out; 
   note that some public definitions here are used from V integrated logging (log module), 
   for better reuse/consistency
