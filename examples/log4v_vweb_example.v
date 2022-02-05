@@ -21,6 +21,7 @@ mut:
 	state shared State // app shared state
 	// log   shared log4v.Log4v // logging with log4v // TODO: check if use this instead ... wip
 	log log4v.Log4v // logging with log4v // TODO: check if good enough ... I have a crash when something is logged with an high Level, check better ... wip
+	log_thread thread
 }
 
 struct State {
@@ -38,16 +39,12 @@ fn main() {
 fn new_app() &App {
 	// create a new log4v instance
 	// mutable because here (once created) I will change options like log level etc ...
-	mut logger := log4v.new_log4v_full(app_name, log4v.format_message, Level.info)
-	// start async management of logs output
-	// TODO: remove the following commented block ... wip
-	// logger_messages_processing := go logger.start()
-	// logger.set_processing_thread_reference(logger_messages_processing) // future work
-	// println(@FN + ' DEBUG - $logger_messages_processing.str()')
-	_ := go logger.start()
+	mut log4v, log4v_thread := log4v.new_log4v_full_start(app_name, .info, log4v.format_message_default, log4v.messages_buffer_default)
+	println(@FN + ' DEBUG - $log4v_thread.str()') // log processing thread is a thread(void)
 
 	mut app := &App{
-		log: logger
+		log: log4v
+		log_thread: log4v_thread
 		port: port
 		started_at: u64(time.now().unix)
 	}
@@ -68,9 +65,10 @@ pub fn (mut app App) before_request() {
 	msg := '${@FN}: url=$url'
 	app.log_debug(msg) // call log wrapper, but with logger level info nothing will be shown
 	app.log.debug(msg) // call log directly, but with logger level info nothing will be shown
-	println('println: ' + msg) // temp
-	// app.log_info('${@FN}: url=$url') // TODO: crash when enabled, check why ... wip
-	// app.log.info('${@FN}: url=$url') // TODO: crash when enabled, check why ... wip
+	println(@FN + ' DEBUG - println: ' + msg) // temp
+	// TODO: crash when enabled, check why ... wip
+	// app.log_info('${@FN}: url=$url')
+	// app.log.info('${@FN}: url=$url')
 }
 
 // log_debug log with verbosity debug, using application logger
