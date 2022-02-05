@@ -4,6 +4,8 @@
 
 Logging framework for V.
 
+For changes and release notes, see [CHANGELOG](./CHANGELOG.md).
+
 
 ## Setup and run
 
@@ -13,7 +15,9 @@ v install log4v
 ```
 then use by importing the module 'log4v'.
 
-TODO: add some sample usage ...
+
+## Examples
+Examples can be found it the [`/examples`](/examples) directory.
 
 
 ## Requirements
@@ -28,6 +32,15 @@ for better compliance and reuse of existing code.
 
 Current setup (and related commands) are for a Linux system, 
 but can be updated for other platforms (Mac, Windows, etc).
+
+
+## Contributing
+
+1. Fork it ( https://github.com/smartiniOnGitHub/log4v/fork )
+2. Create your feature branch (git checkout -b my-new-feature)
+3. Commit your changes (git commit -am 'Add some feature')
+4. Push to the branch (git push origin my-new-feature)
+5. Create a new Pull Request
 
 
 ## License
