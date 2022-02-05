@@ -68,16 +68,16 @@ fn logging_statements_example_for_log4v(name string, mut l Log4v, repeat int) {
 	println('---- $name logging statements for log4v (repeated $repeat times): end   ----')
 }
 
-fn run_v_log_benchmark(repeat int, num_threads int) time.Duration {
+fn run_v_log_benchmark(repeat int, num_threads int, level log.Level) time.Duration {
 	mut threads := []thread{}
 	mut sw := time.new_stopwatch()
 
 	// create and return a new Log instance, but as a generic Logger implementation
 	// mut logger := log.Log{}
-	// logger.set_level(.info) // set here level and not in constructor only to have it mutable here, but it's not really needed ...
+	// logger.set_level(level) // set here level and not in constructor only to have it mutable here, but it's not really needed ...
 	// update: to have Log as generic Logger is must be not mutable (per current definition), but to use directly as Log it must be mutable
 	mut logger := &Log{
-		level: .info
+		level: level
 	} // reference needed for its parallel usage
 
 	// test in multi-thread
@@ -105,7 +105,7 @@ fn run_v_log_benchmark(repeat int, num_threads int) time.Duration {
 	return elapsed
 }
 
-fn run_log4v_as_logger_benchmark(repeat int, num_threads int) time.Duration {
+fn run_log4v_as_logger_benchmark(repeat int, num_threads int, log_level log.Level) time.Duration {
 	mut threads := []thread{}
 	mut sw := time.new_stopwatch()
 
@@ -133,19 +133,18 @@ fn run_log4v_as_logger_benchmark(repeat int, num_threads int) time.Duration {
 	return elapsed
 }
 
-fn run_log4v_benchmark(repeat int, num_threads int) time.Duration {
+fn run_log4v_benchmark(repeat int, num_threads int, title string, log_level log.Level) time.Duration {
 	mut threads := []thread{}
 	mut sw := time.new_stopwatch()
 
 	// create and return a new Log4v instance
-	mut log4v, log4v_thread := log4v.new_log4v_full_start('log4v full options', .info, log4v.format_message_default, log4v.messages_buffer_default)
+	mut log4v, log4v_thread := log4v.new_log4v_full_start(title, log_level, log4v.format_message_default, log4v.messages_buffer_default)
 	println(@FN + ' DEBUG - $log4v_thread.str()') // log processing thread is a thread(void)
 
 	// test in multi-thread
 	for i in 0 .. num_threads {
 		// logging_statements_example_for_log4v('log4v on thread#$i', mut log4v, repeat)
-		threads << go logging_statements_example_for_log4v('log4v on thread#$i', mut log4v,
-			repeat)
+		threads << go logging_statements_example_for_log4v('log4v on thread#$i', mut log4v, repeat)
 	}
 	threads.wait()
 	// log4v.close()
@@ -162,8 +161,6 @@ fn run_log4v_benchmark(repeat int, num_threads int) time.Duration {
 
 	return elapsed
 }
-
-// TODO: add a benchmark even when level is set to disabled, to both or at least only log4v ... wip
 
 // relative_performance_percentage utility function to calculate relative performance percentage of given value and reference (baseline)
 fn relative_performance_percentage(value i64, reference i64) f32 {
@@ -195,13 +192,21 @@ fn main() {
 
 	// log benchmark in a multi-threaded console app
 	println(@FN + ' Benchmark - start')
-	v_log_elapsed := run_v_log_benchmark(repeat, num_threads) // define a baseline
-	// verify log4v performances to be similar, or at least not too slow
-	log4v_as_logger_elapsed := run_log4v_as_logger_benchmark(repeat, num_threads)
-	log4v_elapsed := run_log4v_benchmark(repeat, num_threads)
-
+	v_log_elapsed := run_v_log_benchmark(repeat, num_threads, .info) // define a baseline
 	time.sleep(delay * time.second)
-	println(@FN + 'Add a little delay ($delay sec), to let ouput completes...')
+	// verify log4v performances to be similar, or at least not too slow
+	log4v_as_logger_elapsed := run_log4v_as_logger_benchmark(repeat, num_threads, .info)
+	time.sleep(delay * time.second)
+	log4v_elapsed := run_log4v_benchmark(repeat, num_threads, 'log4v full options', .info)
+	time.sleep(delay * time.second)
+	log4v_disabled_elapsed := run_log4v_benchmark(repeat, num_threads, 'log4v disabled', .disabled)
+	time.sleep(delay * time.second)
+
+	println('')
+	println(@FN + ' Note:')
+	println(@FN + ' Between tests, added a little delay ($delay sec), to let ouput completes...')
+	println(@FN + ' When log level is changed, some thread could log (or not) some messages because of that change...')
+	println('')
 
 	println(@FN + ' Benchmark - results')
 	println(@FN + ' Benchmark - num cpu: ${cpu_tot + 1}') // because it starts from 0 for the first
@@ -210,6 +215,7 @@ fn main() {
 	println(@FN + ' elapsed time for v log: ${v_log_elapsed.milliseconds()}ms, relative performance: 100% (use as baseline)')
 	println(@FN + ' elapsed time for log4v as logger: ${log4v_as_logger_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_as_logger_elapsed.milliseconds(), v_log_elapsed.milliseconds()):3.2}%')
 	println(@FN + ' elapsed time for log4v: ${log4v_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_elapsed.milliseconds(), v_log_elapsed.milliseconds()):3.2}%')
+	println(@FN + ' elapsed time for log4v disabled: ${log4v_disabled_elapsed.milliseconds()}ms, relative performance: ${relative_performance_percentage(log4v_disabled_elapsed.milliseconds(), v_log_elapsed.milliseconds()):3.2}%')
 
 	println(@FN + ' Benchmark - end')
 }
