@@ -18,7 +18,7 @@ mut:
 	level         Level  = .info
 	name          string
 	ch            chan string
-	processed_tot u64 // TODO: check if keep ...
+	processed_tot u64
 }
 
 // LogFormatter defines a generic log formatter function
@@ -111,12 +111,25 @@ pub fn (l Log4v) flush() {
 	// TODO: check if it makes sense here, and if yes, how to flush the channel (and continue to send messages to it, later) ...
 }
 
-// close closes the log file
+// close closes log channel and appenders resources
 pub fn (l Log4v) close() {
 	// close the channel
 	l.ch.close()
 	// close all appenders (where needed)
-	// TODO: ...
+	// TODO: wait for all messages to flush ...
+	// some closing info
+	$if debug {
+		now := time.now().format_ss_milli()
+		println('Log4v instance stopped at $now , details: $l')
+	}
+	l.print_processed_log_messages() // in debug mode, print total number of messages logged
+}
+
+// close_stop closes log channel and appenders resources
+// and stop processing messages thread and others (if any)
+pub fn (l Log4v) close_stop(t thread) {
+	l.close()
+	// t.stop() // TODO: check if it's the right way ...
 }
 
 // send_message writes log message `s` to the log buffer
@@ -129,17 +142,17 @@ fn (l Log4v) send_message(s string) {
 // start get (process) log messages from logger channel and send to all log appenders
 // It must be called asynchronously
 pub fn (mut l Log4v) start() {
-	for { // loop forever // TODO: later check for an exit condition ...
-		msg := <-l.ch
-		// $if debug_log4v ? { // syntax for custom compile time symbol definition, with build options '-d symbol_name'
-		$if debug { // standard compile time symbol, with build options '-cg'
-// TODO: then update docs in TODO.md ... wip
+	$if debug {
+		l.processed_tot = 0
+		now := time.now().format_ss_milli()
+		println('Log4v instance started at $now , details: $l')
+	}
+	for { // loop forever, until channel is closed
+		msg := <-l.ch or { return }
+		$if debug {
 			l.processed_tot++
-			println('${l.processed_tot:7} : $msg') // temp
-			println(msg) // temp // TODO: check with V guys for process stuck after first message even in this case ... wip
-		} $else {
-			println(msg) // temp
 		}
+		println(msg)
 		// TODO: send to all log appenders ...
 	}
 }
@@ -203,4 +216,11 @@ pub fn (l Log4v) trace(s string) {
 	}
 	msg := l.formatter(l.name, s, Level.debug)
 	l.send_message(msg)
+}
+
+// processed_log_messages return the total number of log messages processed since started
+// but note that this function is available only when compiling with the 'debug' flag
+[if debug]
+pub fn (l Log4v) print_processed_log_messages() {
+	println('Log4v instance processed $l.processed_tot messages since started')
 }

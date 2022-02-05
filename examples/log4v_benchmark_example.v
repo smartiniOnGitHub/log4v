@@ -44,7 +44,7 @@ fn logging_statements_example_for_logger(name string, l Logger, repeat int) {
 		l.debug('$name: no output for debug $i') // no output for this here
 		// l.set_level(.debug) // this requires logger instance to be mutable // disabled because not available in Logger
 		l.debug('$name: debug message now $i') // no output for this here because current level does not enable it
-		// l.trace('$name: trace message $i, available only when specifying compilation flag debug, so: `v -d debug ...`') // disabled because not available in Logger
+		// l.trace('$name: trace message $i, available only when specifying compilation debug mode, so: `v -cg ...`') // disabled because not available in Logger
 	}
 
 	println('---- $name logging statements for logger (repeated $repeat times): end   ----')
@@ -62,7 +62,7 @@ fn logging_statements_example_for_log4v(name string, mut l Log4v, repeat int) {
 		l.debug('$name: no output for debug $i') // no output for this here
 		l.set_level(.debug) // this requires logger instance to be mutable
 		l.debug('$name: debug message now $i')
-		l.trace('$name: trace message $i, available only when specifying compilation flag debug, so: `v -d debug ...`') // by default not available
+		l.trace('$name: trace message $i, available only when specifying compilation debug mode, so: `v -cg ...`') // by default not available
 	}
 
 	println('---- $name logging statements for log4v (repeated $repeat times): end   ----')
@@ -121,12 +121,11 @@ fn run_log4v_as_logger_benchmark(repeat int, num_threads int) time.Duration {
 	}
 	threads.wait()
 	// println(@FN + ' DEBUG - All jobs finished!')
+	// TODO: check how to stop logger thread, in this case by calling a general thread function, or the public function log4v.stop(thread) ... wip
 	// benchmark summary
 	elapsed := sw.elapsed()
 	println('Time took: ${elapsed.nanoseconds()}ns, or ${elapsed.milliseconds()}ms, or ${elapsed.seconds():1.3f}sec')
 	println('----')
-
-	// TODO: to close current benchmark test, check how to let the logger stop its thread (as argument to its method close) ... wip
 
 	// sw.restart()
 	// do other tests ...
@@ -149,13 +148,14 @@ fn run_log4v_benchmark(repeat int, num_threads int) time.Duration {
 			repeat)
 	}
 	threads.wait()
+	// log4v.close()
+	log4v.close_stop(log4v_thread)
 	// println(@FN + ' DEBUG - All jobs finished!')
 	// benchmark summary
 	elapsed := sw.elapsed()
 	println('Time took: ${elapsed.nanoseconds()}ns, or ${elapsed.milliseconds()}ms, or ${elapsed.seconds():1.3f}sec')
 	println('----')
 
-	// TODO: to close current benchmark test, check how to let the logger stop its thread (as argument to its method close) ... wip
 
 	// sw.restart()
 	// do other tests ...
@@ -163,7 +163,7 @@ fn run_log4v_benchmark(repeat int, num_threads int) time.Duration {
 	return elapsed
 }
 
-// TODO: add a benchmark even to both loggers when level is set to disabled ... wip
+// TODO: add a benchmark even when level is set to disabled, to both or at least only log4v ... wip
 
 // relative_performance_percentage utility function to calculate relative performance percentage of given value and reference (baseline)
 fn relative_performance_percentage(value i64, reference i64) f32 {
