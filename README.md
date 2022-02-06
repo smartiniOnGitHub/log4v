@@ -11,9 +11,10 @@ For changes and release notes, see [CHANGELOG](./CHANGELOG.md).
 
 Get the module via `vpm`:
 ```bash
-v install log4v
+v install smartiniOnGitHub.log4v
 ```
-then use by importing the module 'log4v'.
+then use by importing it.
+Note that some stuff has to be imported from v 'log' module.
 
 
 ## Examples
