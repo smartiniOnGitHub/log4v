@@ -5,9 +5,10 @@ Summary Changelog:
 - Doc: First release, with minimal set of features
 - Doc: add initial documentation
 - Doc: generated html documentation with v doc, to publish online later
-- Feature: initial implementation (using buffered channel) to log only to system out; 
-  note that some public definitions here are used from V integrated logging (log module), 
-  for better reuse/consistency
+- Feature: initial implementation to log only to system out; 
+  note that mutable references are needed; 
+  for better compliance with V log module, Log4v instance is compatible with Logger interface  
+  and some public definitions are used by importing V log module, for better reuse/consistency
 - Feature: set a log format, fixed for now (all in the same row/line): 
   [logger name or context/application name, optional | ] 
   log level | current timestamp in ISO format | message

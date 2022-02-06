@@ -10,7 +10,8 @@ pub const version = '0.1'
 
 pub const messages_buffer_default = 1000
 
-// Log4v represents a logging object
+// Log4v represents a log manager
+[heap]
 pub struct Log4v {
 	formatter   LogFormatter = format_message_default
 	// appender LogAppender[] TODO: ...
@@ -44,21 +45,21 @@ pub fn new_log4v_full(name string, level Level, formatter LogFormatter, messages
 	}
 }
 
-// new_log4v_full_start create, start and return a new Log4v instance by specifying some logger settings
+// new_log4v_full_start create, start and return a new mutable Log4v instance by specifying some logger settings
 pub fn new_log4v_full_start(name string, level Level, formatter LogFormatter, messages_buffer_len int) (&Log4v, thread) {
 	mut log := new_log4v_full(name, level, formatter, messages_buffer_len)
 	t := go log.start()
 	return log, t
 }
 
-// new_log4v_as_logger create, start and return a new Log4v instance, as a generic Logger implementation
+// new_log4v_as_logger create, start and return a new mutable Log4v instance, as a generic Logger implementation
 pub fn new_log4v_as_logger() (&Logger, thread) {
-	mut log := &Log4v{ name: 'logger' }
+	mut log := &Log4v{}
 	t := go log.start()
 	return log, t
 }
 
-// new_log4v_as_logger_full_start create, start and return a new Log4v instance, as a generic Logger implementation
+// new_log4v_as_logger_full_start create, start and return a new mutable Log4v instance, as a generic Logger implementation
 pub fn new_log4v_as_logger_full_start(name string, level Level, formatter LogFormatter, messages_buffer_len int) (&Logger, thread) {
 	mut log := new_log4v_full(name, level, formatter, messages_buffer_len)
 	t := go log.start()
@@ -107,12 +108,12 @@ pub fn (mut l Log4v) set_level(level Level) {
 }
 
 // flush writes the log file content to disk
-pub fn (l Log4v) flush() {
+pub fn (mut l Log4v) flush() {
 	// TODO: check if it makes sense here, and if yes, how to flush the channel (and continue to send messages to it, later) ...
 }
 
 // close closes log channel and appenders resources
-pub fn (l Log4v) close() {
+pub fn (mut l Log4v) close() {
 	// close the channel
 	l.ch.close()
 	// close all appenders (where needed)
@@ -127,7 +128,7 @@ pub fn (l Log4v) close() {
 
 // close_stop closes log channel and appenders resources
 // and stop processing messages thread and others (if any)
-pub fn (l Log4v) close_stop(t thread) {
+pub fn (mut l Log4v) close_stop(t thread) {
 	l.close()
 	// t.stop() // TODO: check if it's the right way ...
 }
@@ -135,7 +136,7 @@ pub fn (l Log4v) close_stop(t thread) {
 // send_message writes log message `s` to the log buffer
 // to be consumed by all log appenders
 // note that the log message must already be formatted
-fn (l Log4v) send_message(s string) {
+fn (mut l Log4v) send_message(s string) {
 	l.ch <- s
 }
 
@@ -160,7 +161,7 @@ pub fn (mut l Log4v) start() {
 // fatal logs the given message if `Log.level` is greater than or equal to the `Level.fatal` category
 // Note that this method performs a panic at the end, even if log level is not enabled.
 [noreturn]
-pub fn (l Log4v) fatal(s string) {
+pub fn (mut l Log4v) fatal(s string) {
 	if int(l.level) >= int(Level.fatal) {
 		msg := l.formatter(l.name, s, Level.fatal)
 		l.send_message(msg)
@@ -169,7 +170,7 @@ pub fn (l Log4v) fatal(s string) {
 }
 
 // error logs the given message if `Log.level` is greater than or equal to the `Level.error` category
-pub fn (l Log4v) error(s string) {
+pub fn (mut l Log4v) error(s string) {
 	// println('DEBUG: ' + @FN) // temp, only during development/debugging
 	if int(l.level) < int(Level.error) {
 		return
@@ -179,7 +180,7 @@ pub fn (l Log4v) error(s string) {
 }
 
 // warn logs the given message if `Log.level` is greater than or equal to the `Level.warn` category
-pub fn (l Log4v) warn(s string) {
+pub fn (mut l Log4v) warn(s string) {
 	if int(l.level) < int(Level.warn) {
 		return
 	}
@@ -188,7 +189,7 @@ pub fn (l Log4v) warn(s string) {
 }
 
 // info logs the given message if `Log.level` is greater than or equal to the `Level.info` category
-pub fn (l Log4v) info(s string) {
+pub fn (mut l Log4v) info(s string) {
 	if int(l.level) < int(Level.info) {
 		return
 	}
@@ -198,7 +199,7 @@ pub fn (l Log4v) info(s string) {
 }
 
 // debug logs the given message if `Log.level` is greater than or equal to the `Level.debug` category
-pub fn (l Log4v) debug(s string) {
+pub fn (mut l Log4v) debug(s string) {
 	if int(l.level) < int(Level.debug) {
 		return
 	}
@@ -210,7 +211,7 @@ pub fn (l Log4v) debug(s string) {
 // logging level here is the same of debug (a new '.trace' level is not really needed)
 // but note that this function is available only when compiling with the 'debug' flag
 [if debug]
-pub fn (l Log4v) trace(s string) {
+pub fn (mut l Log4v) trace(s string) {
 	if int(l.level) < int(Level.debug) {
 		return
 	}
@@ -221,6 +222,6 @@ pub fn (l Log4v) trace(s string) {
 // processed_log_messages return the total number of log messages processed since started
 // but note that this function is available only when compiling with the 'debug' flag
 [if debug]
-pub fn (l Log4v) print_processed_log_messages() {
+pub fn (mut l Log4v) print_processed_log_messages() {
 	println('Log4v instance processed $l.processed_tot messages since started')
 }

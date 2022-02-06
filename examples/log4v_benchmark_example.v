@@ -32,7 +32,7 @@ fn logging_statements_example_for_v_log(name string, mut l Log, repeat int) {
 	println('---- $name logging statements for v log (repeated $repeat times): end   ----')
 }
 
-fn logging_statements_example_for_logger(name string, l Logger, repeat int) {
+fn logging_statements_example_for_logger(name string, mut l Logger, repeat int) {
 	println('---- $name logging statements for logger (repeated $repeat times): begin ----')
 
 	// repeat more times
@@ -115,9 +115,9 @@ fn run_log4v_as_logger_benchmark(repeat int, num_threads int, log_level log.Leve
 
 	// test in multi-thread
 	for i in 0 .. num_threads {
-		logging_statements_example_for_logger('log4v as logger on thread#$i', logger, repeat)
+		logging_statements_example_for_logger('log4v as logger on thread#$i', mut logger, repeat)
 		// TODO: compilation error (C error on generated sources) on the following line (`error: cannot convert 'struct log__Logger *' to 'struct log__Logger'`), check with V guys ... wip
-		// threads << go logging_statements_example_for_logger('log4v as logger on thread#$i', logger, repeat)
+		// threads << go logging_statements_example_for_logger('log4v as logger on thread#$i', mut logger, repeat)
 	}
 	threads.wait()
 	// println(@FN + ' DEBUG - All jobs finished!')

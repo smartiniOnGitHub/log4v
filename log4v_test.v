@@ -1,6 +1,5 @@
 module log4v
 
-// import log4v as log // when using from the repository
 import log { level_from_tag } // for testing some interoperability with it
 import time
 
@@ -12,18 +11,26 @@ fn test_empty() {
 fn test_new_defaults() {
 	println(@FN + ' ' + 'test creation of a new Log4v instance using all defaults')
 
-	log_struct := Log4v{} // direct instancing the struct
-	assert typeof(log_struct).name == '.Log4v'
+	mut log_struct := &Log4v{} // direct instancing the struct, mutable to start its processing thread
+	assert typeof(log_struct).name == '&.Log4v'
+	// println(@FN + ' log_struct: $log_struct')
+	go log_struct.start() // start log processing messages thread
+	log_struct.info(@FN + ' log_struct: sample info message')
 
-	// create using factory and no arguments, but it returns a generig Logger
-	log_as_logger, log_processing_thread := new_log4v_as_logger()
+	// create and start using factory and no arguments, but it returns a generig Logger
+	mut log_as_logger, log_processing_thread := new_log4v_as_logger()
 	assert typeof(log_as_logger).name == '&log.Logger'
 	assert typeof(log_processing_thread).name == 'thread' // or thread(void)
+	// println(@FN + ' log_as_logger: $log_as_logger')
+	log_as_logger.info(@FN + ' log_as_logger: sample info message')
 
 	// create using factory and no arguments
-	log := new_log4v() // when using from the same (current) repository
-	// log := log4v.new_log4v()// when using from the repository
+	mut log := new_log4v() // when using from the same (current) repository
 	assert typeof(log).name == '&.Log4v'
+	// println(@FN + ' log: $log')
+	// log.set_level(.info) // same as default level
+	go log.start() // start log processing messages thread
+	log.info(@FN + ' log: sample info message')
 }
 
 // exit_after_timeout utility function (to execute async) that exits at the given timeout
