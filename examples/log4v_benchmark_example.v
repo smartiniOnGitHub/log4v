@@ -3,7 +3,7 @@ module main
 import os
 import flag
 import log { Log, Logger }
-import log4v { Log4v }
+import log4v { Log4v } // import smartiniOnGitHub.log4v { Log4v } // from user code
 import runtime
 import time
 
