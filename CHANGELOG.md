@@ -1,6 +1,6 @@
 # Change Log
 
-## [0.1.0](https://github.com/smartiniOnGitHub/log4v/releases/tag/0.1.0) (unreleased)
+## [0.1.0](https://github.com/smartiniOnGitHub/log4v/releases/tag/0.1.0) (2022-04-09)
 Summary Changelog:
 - Doc: First release, with minimal set of features
 - Doc: add initial documentation
