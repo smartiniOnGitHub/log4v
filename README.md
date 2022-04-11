@@ -26,6 +26,15 @@ Examples can be found it the [`/examples`](/examples) directory.
 Latest V (vlang) stable, or built from latest sources.
 
 
+## Sources
+
+Source code is all inside main repo:
+[log4v](https://smartiniOnGitHub@github.com/smartiniOnGitHub/log4v).
+
+Documentation generated from source code (library API):
+[here](https://smartiniongithub.github.io/log4v/).
+
+
 ## Note
 
 In the code, there are references to V integrated 'log' module, 
